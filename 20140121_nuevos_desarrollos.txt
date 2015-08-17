@@ -1,0 +1,107 @@
+2014/01/21:
+Listado de ganadores de cada carrera
+Tabla -> campeones_carrera
+	Se accede desde las clasificaciones de cada campeonato.
+	Crear código PHP de acceso.
+	Crear consulta de llenado.
+	
+2014/02/22:
+Listado de ganadores de cada carrera
+Se elimina la tabla de campeones de carrera y se cargan los datos con una nueva consulta sobre las vistas de las clasificaciones:
+Primera aproximación:
+	select cla.vw_equ_nom, cla.vw_puntos_total, bro.vw_valor_total, cla.vw_cam_cod
+	from vw_campeonatos_clasificacion cla, vw_campeonatos_clasificacion_broker bro
+	where
+		cla.vw_equ_cod = bro.vw_equ_cod
+		and cla.vw_cam_cod = bro.vw_cam_cod
+		and cla.vw_car_cod = bro.vw_car_cod
+		and cla.vw_car_cod = 18
+	group by cla.vw_cam_cod
+	-- order by cla.vw_car_cod desc, cla.vw_cam_cod desc, cla.vw_puntos_total desc
+	
+Usar el item de la clasificación -> con nuevo constructor si es necesario
+
+Sistema disponible en base de datos. HECHO 
+	1->true; 
+	0->false
+	
+$destino -> añadir $_SERVER['DOCUMENT_ROOT'].'
+
+TODO HECHO
+
+HECHO: añadir precios 
+
+tablas de medias
+
+insert into puntos_motores_media
+(`pnt_mot_med_mot_cod`, `pnt_mot_med_car_cod`, `pnt_mot_med_pnt_car_1`, `pnt_mot_med_car_1_cod`, `pnt_mot_med_pnt_car_2`, `pnt_mot_med_car_2_cod`, `pnt_mot_med_pnt_car_3`, `pnt_mot_med_car_3_cod`, `pnt_mot_med_pnt_car_4`, `pnt_mot_med_car_4_cod`, `pnt_mot_med_bonus`)
+select p1.vw_mot_cod,1, p1.vw_mot_pnt, p1.vw_car_cod, p2.vw_mot_pnt, p2.vw_car_cod, p3.vw_mot_pnt, p3.vw_car_cod, p4.vw_mot_pnt, p4.vw_car_cod, 0
+from vw_motores_puntos p1, vw_motores_puntos p2, vw_motores_puntos p3, vw_motores_puntos p4
+where p1.vw_mot_cod = p2.vw_mot_cod 
+	and p1.vw_mot_cod = p3.vw_mot_cod 
+	and p1.vw_mot_cod = p4.vw_mot_cod 	
+	and p1.vw_mot_cod = 1
+	and p1.vw_Car_cod = 18
+	and p2.vw_Car_cod = 17
+	and p3.vw_Car_cod = 16
+	and p4.vw_Car_cod = 15
+	
+insert into puntos_escuderias_media
+(`pnt_esc_med_esc_cod`, `pnt_esc_med_car_cod`, `pnt_esc_med_pnt_car_1`, `pnt_esc_med_car_1_cod`, `pnt_esc_med_pnt_car_2`, `pnt_esc_med_car_2_cod`, `pnt_esc_med_pnt_car_3`, `pnt_esc_med_car_3_cod`, `pnt_esc_med_pnt_car_4`, `pnt_esc_med_car_4_cod`, `pnt_esc_med_bonus`)
+select p1.vw_esc_cod,1, p1.vw_esc_pnt, p1.vw_car_cod, p2.vw_esc_pnt, p2.vw_car_cod, p3.vw_esc_pnt, p3.vw_car_cod, p4.vw_esc_pnt, p4.vw_car_cod, 0
+from vw_escuderias_puntos p1, vw_escuderias_puntos p2, vw_escuderias_puntos p3, vw_escuderias_puntos p4
+where p1.vw_esc_cod = p2.vw_esc_cod 
+	and p1.vw_esc_cod = p3.vw_esc_cod 
+	and p1.vw_esc_cod = p4.vw_esc_cod 	
+	and p1.vw_esc_cod = 1
+	and p1.vw_Car_cod = 18
+	and p2.vw_Car_cod = 17
+	and p3.vw_Car_cod = 16
+	and p4.vw_Car_cod = 15
+	
+insert into puntos_pilotos_media
+(`pnt_pil_med_pil_cod`, `pnt_pil_med_car_cod`, `pnt_pil_med_pnt_car_1`, `pnt_pil_med_car_1_cod`, `pnt_pil_med_pnt_car_2`, `pnt_pil_med_car_2_cod`, `pnt_pil_med_pnt_car_3`, `pnt_pil_med_car_3_cod`, `pnt_pil_med_pnt_car_4`, `pnt_pil_med_car_4_cod`, `pnt_pil_med_bonus`)
+select 1,7, p1.vw_pil_pnt, p1.vw_car_cod, p2.vw_pil_pnt, p2.vw_car_cod, p3.vw_pil_pnt, p3.vw_car_cod, p4.vw_pil_pnt, p4.vw_car_cod, 0
+from vw_pilotos_puntos p1, vw_pilotos_puntos p2, vw_pilotos_puntos p3, vw_pilotos_puntos p4
+where p1.vw_pil_cod = p2.vw_pil_cod 
+	and p1.vw_pil_cod = p3.vw_pil_cod and p1.vw_pil_cod = p4.vw_pil_cod 
+	and p1.vw_Car_cod = 18 and p2.vw_Car_cod = 17 and p3.vw_Car_cod = 16 and p4.vw_Car_cod = 15
+	and p1.vw_pil_cod = 7
+	
+insert into puntos_pilotos_media (`pnt_pil_med_pil_cod`, `pnt_pil_med_car_cod`, `pnt_pil_med_pnt_car_1`, `pnt_pil_med_car_1_cod`, `pnt_pil_med_pnt_car_2`, `pnt_pil_med_car_2_cod`, `pnt_pil_med_pnt_car_3`, `pnt_pil_med_car_3_cod`, `pnt_pil_med_pnt_car_4`, `pnt_pil_med_car_4_cod`, `pnt_pil_med_bonus`) select 1,1, p1.vw_car_cod, p1.vw_pil_pnt, p2.vw_car_cod, p2.vw_pil_pnt, p3.vw_car_cod, p3.vw_pil_pnt, p4.vw_car_cod, p4.vw_pil_pnt, 0 from vw_pilotos_puntos p1, vw_pilotos_puntos p2, vw_pilotos_puntos p3, vw_pilotos_puntos p4 where p1.vw_pil_cod = p2.vw_pil_cod   and p1.vw_pil_cod = p3.vw_pil_cod and p1.vw_pil_cod = p4.vw_pil_cod   and p1.vw_car_cod = 18 and p2.vw_car_cod = 17 and p3.vw_car_cod = 16 and p4.vw_car_cod = 15  and p1.vw_pil_cod = 1);
+
+ u330305403_jamf1 ha sido establecida a qwer1234
+ 
+Recalcular tablas del broker:
+	cargar datos de puntos de pilotos de nuevo -> listos
+	actualizar los puntos de los pilotos con los nuevos dorsales -> listo
+		update puntos_pilotos set pnt_pil_pil_cod = 1 where pnt_pil_pil_cod = 1;
+		update puntos_pilotos set pnt_pil_pil_cod = 7 where pnt_pil_pil_cod = 7;
+		update puntos_pilotos set pnt_pil_pil_cod = 8 where pnt_pil_pil_cod = 8;
+		update puntos_pilotos set pnt_pil_pil_cod = 44 where pnt_pil_pil_cod = 10;
+		update puntos_pilotos set pnt_pil_pil_cod = 99 where pnt_pil_pil_cod = 15;
+		update puntos_pilotos set pnt_pil_pil_cod = 27 where pnt_pil_pil_cod = 11;
+		update puntos_pilotos set pnt_pil_pil_cod = 77 where pnt_pil_pil_cod = 17;
+		update puntos_pilotos set pnt_pil_pil_cod = 26 where pnt_pil_pil_cod = 19;
+		update puntos_pilotos set pnt_pil_pil_cod = 13 where pnt_pil_pil_cod = 16;
+		update puntos_pilotos set pnt_pil_pil_cod = 25 where pnt_pil_pil_cod = 18;
+
+		update puntos_pilotos set pnt_pil_pil_cod = 11 where pnt_pil_pil_cod = 6;
+		update puntos_pilotos set pnt_pil_pil_cod = 6 where pnt_pil_pil_cod = 9;
+		update puntos_pilotos set pnt_pil_pil_cod = 9 where pnt_pil_pil_cod = 20;
+		update puntos_pilotos set pnt_pil_pil_cod = 20 where pnt_pil_pil_cod = 14;
+		update puntos_pilotos set pnt_pil_pil_cod = 14 where pnt_pil_pil_cod = 3;
+		update puntos_pilotos set pnt_pil_pil_cod = 3 where pnt_pil_pil_cod = 19;
+		update puntos_pilotos set pnt_pil_pil_cod = 19 where pnt_pil_pil_cod = 4;
+		update puntos_pilotos set pnt_pil_pil_cod = 4 where pnt_pil_pil_cod = 23;
+
+		update puntos_pilotos set pnt_pil_pil_cod = 17 where pnt_pil_pil_cod = 22;
+		update puntos_pilotos set pnt_pil_pil_cod = 22 where pnt_pil_pil_cod = 5;
+
+		update puntos_pilotos set pnt_pil_pil_cod = 10 where pnt_pil_pil_cod = 21;
+		update puntos_pilotos set pnt_pil_pil_cod = 21 where pnt_pil_pil_cod = 12;
+	
+	ejecutar scripts inserción 
+		Motores -> hecho
+		Escuderias -> hecho
+		Pilotos

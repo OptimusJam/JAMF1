@@ -1,0 +1,238 @@
+Procedimiento de calculo de puntos, valores y actualizacion de equipos tras un GP
+1.- Inserción de resultados
+
+//2.- Invocar SP calculo de puntos de pilotos
+call PROC_CALCULAR_PUNTOS_PILOTOS(5) -> Definition of table `puntos_pilotos` 
+	-> revisar que genera doble entrada en puntos_pilotos_media, puntos_escuderias_media, puntos_motores_media
+go
+//3.- Insertar puntos de apuestas en tabla puntos_apuestas_carrera
+
+	insert into puntos_apuestas_carrera
+(pun_apu_equ_cod,pun_apu_car_cod,pun_apu_pun_pod,pun_apu_pun_pos_alo,pun_apu_pun_pos_tot)
+select vw_equ_cod,vw_car_cod,vw_puntos_podio,vw_puntos_alonso,vw_puntos_apuestas
+from vw_puntos_apuestas where vw_car_cod = 2
+
+//4.- Invocar SP de calculo de valor de pilotos
+call proc_calcular_valor_pilotos(2)
+go
+//5.- Invocar SP de calculo de valor de escuderias
+call proc_calcular_valor_escuderias(2)
+go
+//6.- Invocar SP de calculo de valor de motores
+call proc_calcular_valor_motores(2)
+go
+
+20131008 -> OJO con la generacion de duplicados.
+
+delete from valores_pilotos where val_pil_car_cod = 2;# 24 filas afectadas.
+
+delete from valores_escuderias where val_esc_car_cod = 2;# 12 filas afectadas.
+
+delete from valores_motores where val_mot_car_cod = 2;# 4 filas afectadas.
+
+select * from puntos_pilotos_media where pnt_pil_med_car_Cod = 16
+
+select * from puntos_escuderias_media where pnt_esc_med_car_Cod = 16
+
+select * from puntos_motores_media where pnt_mot_med_car_Cod = 16
+
+//7.- Invocar el SP de calculo de medias de los pilotos
+call proc_calcular_tabla_medias_pilotos(2)
+go
+//8.- Invocar el SP de calculo de medias de los pilotos
+call proc_calcular_tabla_medias_escuderias(2)
+go
+//9.- Invocar el SP de calculo de medias de los pilotos
+call proc_calcular_tabla_medias_motores(2)
+go
+
+-> revisar que genera doble entrada en puntos_pilotos_media, puntos_escuderias_media, puntos_motores_media
+
+AÑADIR EL DINERO!!!
+//10.- Insertar en equipos_componentes para actualizar equipos a la nueva carrera
+	insert into equipos_componentes
+	(equ_equ_cod, equ_car_cod, equ_pil_1_cod, equ_pil_2_cod, equ_pil_3_cod, equ_pil_4_cod,
+			equ_esc_1_cod, equ_esc_2_cod,
+			equ_mot_1_cod, equ_din)
+	select equ_equ_cod, equ_car_cod+1, 
+			equ_pil_1_cod, equ_pil_2_cod, equ_pil_3_cod, equ_pil_4_cod,
+			equ_esc_1_cod, equ_esc_2_cod,
+			equ_mot_1_cod, equ_din
+	from equipos_componentes
+	where equ_car_cod = 1
+	
+	
+	//Borrar mis equipos con equ_cod 63,64,65//
+
+//11.- Insertar en apuestas_carrera para actualizar apuestas a la nueva carrera
+	insert into apuestas_carrera
+	(apu_car_equ_cod, apu_car_car_cod, 
+		apu_car_pod_pri_pil_cod, apu_car_pod_seg_pil_cod, apu_car_pod_ter_pil_cod,
+		apu_car_pos_alo)
+	select apu_car_equ_cod, apu_car_car_cod+1, 
+		apu_car_pod_pri_pil_cod, apu_car_pod_seg_pil_cod, apu_car_pod_ter_pil_cod,
+		apu_car_pos_alo
+	from apuestas_carrera
+	where apu_car_car_cod = 1
+
+	20131015 -> Por aqui (local)
+	
+2013/09/18: nuevo procedimiento para insertar los datos en las clasificaciones: 
+	ejecutar sentencias del fichero 
+		20130918_insert_datos_clasif_broker.sql
+	
+10.- Insertar en campeonatos_clasificacion para obtener la clasificacion de la carrera
+
+	crear vista vw_equipos
+	crear vista vw_puntos_equipo_componentes desde back-up de vistas
+	
+	insert into campeonatos_clasificacion
+	(cam_cla_usu_nom, cam_cla_equ_cod, cam_cla_equ_nom, cam_cla_car_cod, cam_cla_cam_cod,
+	 cam_cla_pil_1_nom, cam_cla_pil_1_pnt,
+	 cam_cla_pil_2_nom, cam_cla_pil_2_pnt,
+	 cam_cla_pil_3_nom, cam_cla_pil_3_pnt,
+	 cam_cla_pil_4_nom, cam_cla_pil_4_pnt,
+	 cam_cla_esc_1_nom, cam_cla_esc_1_pnt,
+	 cam_cla_esc_2_nom, cam_cla_esc_2_pnt,
+	 cam_cla_mot_1_nom, cam_cla_mot_1_pnt,
+	 cam_cla_pnt_pod, cam_cla_pnt_alo)
+	select concat(usr_nom,' ',usr_ape_1,' ',usr_ape_2) as nombre,  
+        vw_equ_cod, vw_equ_nombre, vw_car_cod, vw_cam_cod,
+        vw_piloto_1_nombre, vw_piloto_1_puntos,
+        vw_piloto_2_nombre, vw_piloto_2_puntos,
+        vw_piloto_3_nombre, vw_piloto_3_puntos,
+        vw_piloto_4_nombre, vw_piloto_4_puntos,
+        vw_escuderia_1_nombre, vw_escuderia_1_puntos,
+        vw_escuderia_2_nombre, vw_escuderia_2_puntos,
+        vw_motor_1_nombre, vw_motor_1_puntos,
+        vw_puntos_podio,
+        vw_puntos_pos_alonso        
+	from vw_puntos_equipo_componentes, usuarios
+	where vw_usr_cod = usr_cod
+		and vw_car_cod = 1
+		
+	eliminar vista vw_puntos_equipo_componentes
+		drop view vw_puntos_equipo_componentes;		
+	eliminar vista vw_equipos
+		drop view vw_equipos;
+		
+
+2013-03-24: Version 7.0	
+11.- Insertar en campeonatos_clasificacion para obtener la clasificacion de la carrera
+
+	crear vista vw_equipos
+	crear vista vw_valor_equipo_componentes desde back-up de vistas
+
+	insert into campeonatos_clasificacion_broker
+	(cam_cla_bro_usu_nom, cam_cla_bro_equ_cod, cam_cla_bro_equ_nom, cam_cla_bro_car_cod, cam_cla_bro_cam_cod,
+	 cam_cla_bro_pil_1_nom, cam_cla_bro_pil_1_val,
+	 cam_cla_bro_pil_2_nom, cam_cla_bro_pil_2_val,
+	 cam_cla_bro_pil_3_nom, cam_cla_bro_pil_3_val,
+	 cam_cla_bro_pil_4_nom, cam_cla_bro_pil_4_val,
+	 cam_cla_bro_esc_1_nom, cam_cla_bro_esc_1_val,
+	 cam_cla_bro_esc_2_nom, cam_cla_bro_esc_2_val,
+	 cam_cla_bro_mot_1_nom, cam_cla_bro_mot_1_val)
+	select concat(usr_nom,' ',usr_ape_1,' ',usr_ape_2) as nombre,  
+        vw_equ_cod, vw_equ_nombre, vw_car_cod, vw_cam_cod,
+        vw_piloto_1_nombre, vw_piloto_1_valor,
+        vw_piloto_2_nombre, vw_piloto_2_valor,
+        vw_piloto_3_nombre, vw_piloto_3_valor,
+        vw_piloto_4_nombre, vw_piloto_4_valor,
+        vw_escuderia_1_nombre, vw_escuderia_1_valor,
+        vw_escuderia_2_nombre, vw_escuderia_2_valor,
+        vw_motor_1_nombre, vw_motor_1_valor
+	from vw_valor_equipo_componentes, usuarios
+	where vw_usr_cod = usr_cod
+		and vw_car_cod = 1
+	
+	eliminar vista vw_valor_equipo_componentes 
+		drop view vw_valor_equipo_componentes;
+	eliminar vista vw_equipos
+		drop view vw_equipos;
+	
+	select count(*) from campeonatos_clasificacion where cam_cla_car_cod = 15
+	
+	select count(*) from campeonatos_clasificacion_broker where cam_cla_bro_car_cod = 15
+	
+	2013/10/08: Export a la BBDD del hostinger.
+		1.- Importar desde el que tiene todo de local
+		2.- Export desde el phpMyAdmin local
+		3.- Emport al Hostinger
+		
+11.- Construción del equipo fantastico de la jornada:
+	Pilotos:
+		SELECT * FROM vw_valores_pilotos_carrera WHERE vw_car_cod =12 ORDER BY vw_pil_pnt DESC LIMIT 0 , 4
+	Escuderias:
+		SELECT * FROM vw_valores_escuderias_carrera WHERE vw_car_cod =12 ORDER BY vw_esc_pnt DESC LIMIT 0 , 2
+	Motores:
+		SELECT * FROM vw_valores_motores_carrera WHERE vw_car_cod =12 ORDER BY vw_mot_pnt DESC LIMIT 0 , 1
+
+Version 7.0
+2013/03/20: Datos el Broker y de los Campeones de cada carrera.		
+		
+//Vista para los puntos de las apuestas del mundial
+select equ_nom,
+    if (apu_mun_cam_pil_cod = 1,1500,0) as vw_puntos_campeon,
+    if (apu_mun_cam_esc_cod = 1,1500,0) as vw_puntos_escuderia,
+    if (apu_mun_vue_pil_cod = 2,1500,0) as vw_puntos_vuelta_rapida
+from apuestas_mundial, equipos_datos
+where apu_mun_equ_cod = equ_cod
+
+select vw_usu_nom,vw_equ_cod, vw_equ_nom, vw_cam_cod, (sum(vw_puntos_total) + vw_puntos_campeon + vw_puntos_escuderia + vw_puntos_vuelta_rapida) as vw_puntos_total
+from vw_campeonatos_clasificacion, (select apu_mun_equ_cod as equ_cod,
+    if (apu_mun_cam_pil_cod = 1,1500,0) as vw_puntos_campeon,
+    if (apu_mun_cam_esc_cod = 1,1500,0) as vw_puntos_escuderia,
+    if (apu_mun_vue_pil_cod = 2,1500,0) as vw_puntos_vuelta_rapida
+from apuestas_mundial) as t1
+where equ_cod = vw_equ_cod and 
+vw_cam_cod = '3'
+group by vw_equ_cod, vw_equ_nom, vw_cam_cod
+order by  (sum(vw_puntos_total) + vw_puntos_campeon + vw_puntos_escuderia + vw_puntos_vuelta_rapida) desc
+
+select * from (
+select vw_usu_nom,vw_equ_cod, vw_equ_nom, vw_cam_cod, (sum(vw_puntos_total) + vw_puntos_campeon + vw_puntos_escuderia + vw_puntos_vuelta_rapida) as vw_puntos_total
+from vw_campeonatos_clasificacion, (select apu_mun_equ_cod as equ_cod,
+    if (apu_mun_cam_pil_cod = 1,1500,0) as vw_puntos_campeon,
+    if (apu_mun_cam_esc_cod = 1,1500,0) as vw_puntos_escuderia,
+    if (apu_mun_vue_pil_cod = 2,1500,0) as vw_puntos_vuelta_rapida
+from apuestas_mundial) as t1
+where equ_cod = vw_equ_cod and 
+vw_cam_cod = '3'
+group by vw_equ_cod, vw_equ_nom, vw_cam_cod) as t1
+order by  vw_puntos_total desc
+
+//Importar usuarios de la aplicacion
+
+Acciones para eliminar las puntuaciones de la carrera:
+1.- Eliminar la clasificación de la carrera
+	delete from campeonatos_clasificacion where cam_cla_car_cod = 18;
+2.- Eliminar de la tabla de medias de pilotos, escuderias y los datos motores generados para la siguiente carrera
+	delete from puntos_pilotos_media where pnt_pil_med_car_cod = 18;
+	delete from puntos_escuderias_media where pnt_esc_med_car_cod = 18;
+	delete from puntos_motores_media where pnt_mot_med_car_cod = 18;
+3.- Eliminar de la tabla de valores de pilotos, escuderias y motores los datos generados para la siguiente carrera
+	delete from valores_pilotos where val_pil_car_cod = 18;
+	delete from valores_escuderias where val_esc_car_cod = 18;
+	delete from valores_motores where val_mot_car_cod = 18;
+4.- Eliminar los puntos de la tabla de pilotos
+	delete from puntos_pilotos where pnt_pil_car_cod = 18;
+5.- Eliminar los resultados
+	delete from resultados_carrera where res_car_car_cod = 18;
+	
+	
+2013/07/24: 
+Vistas eliminadas en explotación (hostinger):
+
+vw_equipos
+
+vw_valor_equipo_componentes
+vw_puntos_equipo_componentes
+	Estas dos requieren rehacer los scripts de inserción de datos en las tablas de clasificaciones.
+	
+Vistas a eliminar:
+vw_campeonatos_muro
+	requiere modificaciones en el código php.
+
+vw_campeonatos_clasificacion
+vw_campeonatos_clasificacion_broker
+	requiere modificaciones en el código php.
